@@ -1,0 +1,10 @@
+kumpulan,audio,model,ambang,n,n_asli,n_palsu,akurasi_%,sintetis_lolos,asli_ditolak,EER_%,AUC
+uji_pejabat,asli,lama,0.5253,66,33,33,59.09,21,6,42.42,0.668
+uji_pejabat,asli,antara,0.8431,66,33,33,84.85,7,3,18.18,0.8857
+uji_pejabat,asli,baru,0.0124,66,33,33,74.24,6,11,24.24,0.8563
+uji_pejabat,mp3_64,lama,0.5253,66,33,33,59.09,22,5,36.36,0.7002
+uji_pejabat,mp3_64,antara,0.8431,66,33,33,78.79,9,5,18.18,0.8811
+uji_pejabat,mp3_64,baru,0.0124,66,33,33,74.24,6,11,24.24,0.848
+uji_pejabat,opus_24,lama,0.5253,66,33,33,59.09,20,7,36.36,0.6809
+uji_pejabat,opus_24,antara,0.8431,66,33,33,83.33,7,4,18.18,0.8783
+uji_pejabat,opus_24,baru,0.0124,66,33,33,71.21,7,12,24.24,0.8434

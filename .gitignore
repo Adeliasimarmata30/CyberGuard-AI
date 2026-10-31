@@ -7,3 +7,8 @@ frontend/.next/
 __pycache__/
 *.pyc
 .env
+backend/voice/data/
+.env.local
+backend/voice/models/xlsr-300m/
+pemetaan_nama.csv
+backend/voice/results/**/skor_per_klip*.csv

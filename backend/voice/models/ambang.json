@@ -1,0 +1,23 @@
+{
+  "ambang": 0.843096911907196,
+  "epoch_terbaik": 10,
+  "eer_validasi_rata": 0.0,
+  "auc_validasi_rata": 1.0,
+  "catatan": "ambang dipilih dari data validasi (audio asli + varian terkompresi); skor tinggi = asli; label 1 = asli",
+  "pengaturan": {
+    "UNFREEZE_TOP": 0,
+    "BATCH": 16,
+    "CROPS_PER_KLIP": 2,
+    "LR_XLSR": 1e-05,
+    "LR_AASIST": 5e-05,
+    "SEED": 42,
+    "EPOCH_MAKS": 25,
+    "SABAR": 6
+  },
+  "data": {
+    "latih": 533,
+    "validasi": 98,
+    "uji": 98,
+    "salinan_dibuang": 49
+  }
+}

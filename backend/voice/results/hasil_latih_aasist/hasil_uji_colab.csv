@@ -1,0 +1,13 @@
+model,kelompok,audio,n,EER_%,AUC,akurasi_%,sintetis_lolos,asli_ditolak
+model antara (XLS-R beku),Semua uji,asli,98,6.12,0.9919,96.94,0,3
+model antara (XLS-R beku),Internet (Dataset 1 dan 3),asli,20,0.0,1.0,100.0,0,0
+model antara (XLS-R beku),Rekaman sendiri (penutur baru),asli,78,7.69,0.9872,96.15,0,3
+model antara (XLS-R beku),Semua uji,mp3_128,98,4.08,0.9919,96.94,0,3
+model antara (XLS-R beku),Internet (Dataset 1 dan 3),mp3_128,20,0.0,1.0,100.0,0,0
+model antara (XLS-R beku),Rekaman sendiri (penutur baru),mp3_128,78,5.13,0.9872,96.15,0,3
+model antara (XLS-R beku),Semua uji,mp3_64,98,4.08,0.9931,96.94,0,3
+model antara (XLS-R beku),Internet (Dataset 1 dan 3),mp3_64,20,0.0,1.0,100.0,0,0
+model antara (XLS-R beku),Rekaman sendiri (penutur baru),mp3_64,78,5.13,0.9892,96.15,0,3
+model antara (XLS-R beku),Semua uji,opus_24,98,6.12,0.9923,95.92,0,4
+model antara (XLS-R beku),Internet (Dataset 1 dan 3),opus_24,20,0.0,1.0,100.0,0,0
+model antara (XLS-R beku),Rekaman sendiri (penutur baru),opus_24,78,7.69,0.9878,94.87,0,4

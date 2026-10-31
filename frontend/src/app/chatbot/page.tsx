@@ -8,7 +8,7 @@
     Plus, MessageSquare, Send, Bot, Menu, X, 
     User, Loader2, MoreVertical, Trash2, Pencil,
     ShieldCheck, Search, Pin, PinOff, Sparkles,
-    AlertTriangle, Zap, Shield, Clock
+        AlertTriangle, Zap, Shield, Clock, Mic
   } from "lucide-react";
 
   interface Message {
@@ -55,6 +55,7 @@ function ChatbotContent() {
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef       = useRef<HTMLInputElement>(null);
+        const fileRef        = useRef<HTMLInputElement>(null);
 
     const defaultRecs = [
       "Apa itu Phishing?",
@@ -277,6 +278,54 @@ function ChatbotContent() {
         setIsTyping(false);
         setTimeout(() => inputRef.current?.focus(), 100);
       }
+    };
+    // ── Kirim file suara untuk diperiksa keasliannya ──────
+    const sendVoice = async (file: File) => {
+      if (!activeSessionId || isTyping) return;
+      setIsTyping(true);
+
+      // 1. Tampilkan pesan pengguna: "Periksa suara: nama_file"
+      const userMsg: Message = { role: "user", text: `🎤 Periksa suara: ${file.name}`, timestamp: Date.now() };
+      setSessions(prev => prev.map(s =>
+        s.id === activeSessionId
+          ? { ...s, messages: [...s.messages, userMsg], updatedAt: Date.now() }
+          : s
+      ));
+
+      // 2. Kirim file ke backend, lalu susun kalimat balasan
+      let reply = "";
+      try {
+        const form = new FormData();
+        form.append("file", file);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/voice/check`, {
+          method: "POST",
+          body: form,
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          reply = `⚠️ ${data.detail || "Gagal memeriksa suara."}`;
+        } else {
+          const h = data.hasil;
+          const kesimpulan = h.label === "asli"
+            ? "Suara ini terindikasi ASLI (rekaman suara manusia)."
+            : "Suara ini terindikasi SINTETIS (kemungkinan dihasilkan AI).";
+          reply =
+            `${kesimpulan}\n` +
+            `Skor keaslian: ${Math.round(h.skor_asli * 100)}% ` +
+            `(batas ${Math.round(h.ambang * 100)}%), dari ${h.jumlah_segmen} potongan suara.\n` +
+            `${h.catatan}`;
+        }
+      } catch {
+        reply = "⚠️ Tidak dapat terhubung ke server. Pastikan backend aktif.";
+      }
+
+      // 3. Tampilkan balasan bot
+      setSessions(prev => prev.map(s =>
+        s.id === activeSessionId
+          ? { ...s, updatedAt: Date.now(), messages: [...s.messages, { role: "bot", text: reply, timestamp: Date.now() }] }
+          : s
+      ));
+      setIsTyping(false);
     };
 
     const confirmDelete = (id: string) => {
@@ -546,6 +595,28 @@ function ChatbotContent() {
     placeholder="Tanyakan seputar keamanan siber..."
  className="w-full bg-slate-100 dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 focus:border-blue-500/50 rounded-2xl pl-5 pr-14 py-3 text-[15px] font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-600 outline-none transition-all focus:bg-white dark:focus:bg-white/[0.08] shadow-inner"
   />
+
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept=".wav,.mp3,.flac,.m4a,.ogg,.opus,audio/*"
+                    className="hidden"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) sendVoice(f);
+                      e.target.value = "";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={isTyping}
+                    title="Periksa keaslian suara"
+                    className="absolute right-14 top-1/2 -translate-y-1/2 w-11 h-11 bg-slate-200 hover:bg-slate-300 dark:bg-white/5 dark:hover:bg-white/10 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center transition-all active:scale-95 disabled:opacity-30"
+                  >
+                    <Mic size={16} />
+                  </button>
+
                   <button
                     type="submit"
                     disabled={isTyping || !input.trim()}

@@ -14,7 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # Import router endpoint
-from routers import auth, chat
+from routers import auth, chat, voice
+
 
 # Import service verifikasi URL
 from services.analyzer_service import analyze_url
@@ -76,6 +77,9 @@ app.include_router(auth.router)
 
 # Registrasi router chatbot
 app.include_router(chat.router)
+
+# Registrasi router voice
+app.include_router(voice.router)
 
 
 # Endpoint health check system

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { 
   X, Send, Loader2, Plus, Trash2, Pencil, Pin, PinOff,
   History, ChevronLeft, Terminal, MessageSquare,
-  Search, MoreVertical, AlertTriangle
+  Search, MoreVertical, AlertTriangle, Mic
 } from "lucide-react";
 
 interface Message  { role: string; text: string; }
@@ -46,6 +46,7 @@ export default function ChatWidget() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef       = useRef<HTMLInputElement>(null);
+  const fileRef        = useRef<HTMLInputElement>(null);
 
   const defaultRecs = [
     "Apa itu Phishing?", "Cara mencegah Malware?",
@@ -270,6 +271,60 @@ export default function ChatWidget() {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [activeId, isTyping]);
+  // ── Kirim file suara untuk diperiksa keasliannya ─────
+  const sendVoice = useCallback(async (file: File) => {
+    if (!activeId || isTyping) return;
+    setIsTyping(true);
+
+    // 1. Tampilkan pesan pengguna: "Periksa suara: nama_file"
+    const userMsg: Message = { role: "user", text: `🎤 Periksa suara: ${file.name}` };
+    setSessions(prev => {
+      const updated = prev.map(s =>
+        s.id === activeId ? { ...s, messages: [...s.messages, userMsg] } : s
+      );
+      writeStorage(updated);
+      return updated;
+    });
+
+    // 2. Kirim file ke backend, lalu susun kalimat balasan
+    let reply = "";
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/voice/check`, {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        reply = `⚠️ ${data.detail || "Gagal memeriksa suara."}`;
+      } else {
+        const h = data.hasil;
+        const kesimpulan = h.label === "asli"
+          ? "Suara ini terindikasi ASLI (rekaman suara manusia)."
+          : "Suara ini terindikasi SINTETIS (kemungkinan dihasilkan AI).";
+        reply =
+          `${kesimpulan}\n` +
+          `Skor keaslian: ${Math.round(h.skor_asli * 100)}% ` +
+          `(batas ${Math.round(h.ambang * 100)}%), dari ${h.jumlah_segmen} potongan suara.\n` +
+          `${h.catatan}`;
+      }
+    } catch {
+      reply = "⚠️ Server tidak dapat dijangkau.";
+    }
+
+    // 3. Tampilkan balasan bot
+    setSessions(prev => {
+      const updated = prev.map(s =>
+        s.id === activeId
+          ? { ...s, messages: [...s.messages, { role: "bot", text: reply }] }
+          : s
+      );
+      writeStorage(updated);
+      return updated;
+    });
+    setIsTyping(false);
+  }, [activeId, isTyping]);
 
   const sortedSessions = [...sessions].sort((a, b) =>
     a.isPinned === b.isPinned ? 0 : a.isPinned ? -1 : 1
@@ -397,7 +452,7 @@ export default function ChatWidget() {
             >
               {activeSession?.messages.map((msg, i) => (
                 <div key={i} className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in duration-200`}>
-                  <div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed ${
+<div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed whitespace-pre-line ${
                     msg.role === "user"
                       ? "bg-blue-600 text-white rounded-tr-none"
                       : "bg-white/[0.06] border border-white/8 text-gray-300 rounded-tl-none"
@@ -445,8 +500,29 @@ export default function ChatWidget() {
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     placeholder="Tanyakan teknis..."
-                    className="w-full bg-white/[0.04] border border-white/10 focus:border-blue-500/50 rounded-2xl py-3.5 pl-4 pr-12 text-xs font-medium text-white placeholder-gray-600 outline-none transition-all focus:bg-white/[0.06]"
+                    className="w-full bg-white/[0.04] border border-white/10 focus:border-blue-500/50 rounded-2xl py-3.5 pl-4 pr-24 text-xs font-medium text-white placeholder-gray-600 outline-none transition-all focus:bg-white/[0.06]"
                   />
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept=".wav,.mp3,.flac,.m4a,.ogg,.opus,audio/*"
+                    className="hidden"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) sendVoice(f);
+                      e.target.value = "";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={isTyping}
+                    title="Periksa keaslian suara"
+                    className="absolute right-12 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/5 hover:bg-white/10 text-blue-400 rounded-xl flex items-center justify-center transition-all active:scale-95 disabled:opacity-30"
+                  >
+                    <Mic size={14} />
+                  </button>
+
                   <button
                     type="submit"
                     disabled={isTyping || !input.trim()}
